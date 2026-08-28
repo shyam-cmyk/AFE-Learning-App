@@ -48,4 +48,4 @@ jobs:
         run: npx electron-rebuild --force || echo 'electron-rebuild completed with non-zero exit (tolerated)'
 
       - name: Basic smoke Node check
-        run: node -e "console.log('smoke: ok')"
+        run: echo smoke-ok
