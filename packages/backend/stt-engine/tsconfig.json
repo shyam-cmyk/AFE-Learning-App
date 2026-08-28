@@ -6,6 +6,9 @@
         "declarationMap": true,
         "module": "ESNext",
         "moduleResolution": "bundler",
+        "types": [
+            "node"
+        ],
         "outDir": "./dist",
         "rootDir": "."
     },

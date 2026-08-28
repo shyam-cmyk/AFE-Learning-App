@@ -12,6 +12,15 @@ let ollama: Ollama | null = null;
 let contentManifest: any = null;
 let contentRoot: string | undefined;
 
+const OLLAMA_MODEL_CANDIDATES = [
+    'qwen2.5:1.5b',
+    'qwen2.5-coder:7b',
+    'qwen2.5:7b',
+    'llama3.2:3b',
+    'llama3.1:8b',
+    'gemma3:4b',
+];
+
 /**
  * Initialize the AI Tutor service with the correct database path and optional content root.
  */
@@ -30,6 +39,32 @@ function getOllamaClient(): Ollama {
     return ollama;
 }
 
+async function getAvailableOllamaModels(): Promise<string[]> {
+    try {
+        const client = getOllamaClient();
+        const response = await client.list();
+        const models = Array.isArray(response?.models) ? response.models : [];
+        return models
+            .map((model) => typeof model?.name === 'string' ? model.name : '')
+            .filter(Boolean);
+    } catch (error) {
+        console.warn('[AiTutor] Unable to list Ollama models:', error);
+        return [];
+    }
+}
+
+async function resolveOllamaModel(): Promise<string> {
+    const installedModels = await getAvailableOllamaModels();
+
+    for (const candidate of OLLAMA_MODEL_CANDIDATES) {
+        const matches = installedModels.some((modelName) => modelName === candidate || modelName.startsWith(`${candidate}:`));
+        if (matches) return candidate;
+    }
+
+    if (installedModels.length > 0) return installedModels[0];
+    return OLLAMA_MODEL_CANDIDATES[0];
+}
+
 function getManifest() {
     if (!contentManifest) {
         // Use the initialized content root, or fall back to the hardcoded shared constant
@@ -41,8 +76,9 @@ function getManifest() {
 async function generateSessionTitle(sessionId: string, firstMessage: string): Promise<string | null> {
     try {
         const client = getOllamaClient();
+        const model = await resolveOllamaModel();
         const response = await client.chat({
-            model: 'qwen2.5:1.5b',
+            model,
             keep_alive: isLowEndDevice() ? 0 : '5m', // Unload immediately on low-end, default 5m otherwise
             messages: [
                 {
@@ -133,7 +169,7 @@ export async function sendMessage(
 
         let aiResponse = '';
         let cancelled = false;
-        const model = 'qwen2.5:1.5b'; // Using a smaller model for better speed on local
+        const model = await resolveOllamaModel();
 
         if (onChunk) {
             const stream = await client.chat({
@@ -330,7 +366,7 @@ export async function sendVoiceMessage(
 
         let aiResponse = '';
         let sentenceBuffer = '';
-        const model = 'qwen2.5:1.5b';
+        const model = await resolveOllamaModel();
 
         const stream = await client.chat({
             model,
@@ -476,7 +512,7 @@ export async function generateLearningSummary(
 ): Promise<{ summary: string; progressNote?: string }> {
     const db = getDatabase(dbPath);
     const client = getOllamaClient();
-    const model = 'qwen2.5:1.5b';
+    const model = await resolveOllamaModel();
 
     // 1. Fetch all chat history for this student (across all sessions)
     const sessions = await db.select().from(aiSessions).where(eq(aiSessions.studentId, studentId));

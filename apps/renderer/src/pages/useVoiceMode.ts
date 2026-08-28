@@ -29,6 +29,7 @@ export function useVoiceMode(): VoiceModeReturn {
     const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const sessionIdRef = useRef<string>("");
     const studentIdRef = useRef<string>("");
+    const sessionLanguageRef = useRef<string>("English");
 
     // Cleanup STT final listener
     const cleanupSTTRef = useRef<(() => void) | null>(null);
@@ -48,6 +49,31 @@ export function useVoiceMode(): VoiceModeReturn {
     const audioQueueRef = useRef<Array<{ audio: string; index: number; text: string }>>([]);
     const isPlayingRef = useRef(false);
     const voiceDoneRef = useRef(false);
+    const listenAfterResponseRef = useRef<number | null>(null);
+
+    const resolveSpeechLocale = useCallback((lang?: string): string => {
+        const normalized = (lang || "English").toLowerCase();
+        const localeMap: Record<string, string> = {
+            en: "en-IN",
+            english: "en-IN",
+            hi: "hi-IN",
+            hindi: "hi-IN",
+            "hi-en": "hi-IN",
+            hinglish: "hi-IN",
+            ta: "ta-IN",
+            tamil: "ta-IN",
+            te: "te-IN",
+            telugu: "te-IN",
+            mr: "mr-IN",
+            marathi: "mr-IN",
+            gu: "gu-IN",
+            gujarati: "gu-IN",
+            kn: "kn-IN",
+            kannada: "kn-IN",
+        };
+
+        return localeMap[normalized] || "en-IN";
+    }, []);
 
     // Helper to update orbState and ref together
     const setOrbStateSync = useCallback((state: OrbState) => {
@@ -94,7 +120,10 @@ export function useVoiceMode(): VoiceModeReturn {
      */
     const startListening = useCallback(async () => {
         if (!isActiveRef.current) return;
-        if (orbStateRef.current === "listening") return; // Already listening
+        if (mediaStreamRef.current || audioContextRef.current || workletNodeRef.current) {
+            console.log("[VoiceMode] Mic already active, skipping duplicate start");
+            return;
+        }
 
         if (!window.electronAPI?.stt) {
             console.warn("[VoiceMode] electronAPI.stt not available");
@@ -109,6 +138,10 @@ export function useVoiceMode(): VoiceModeReturn {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const audioContext = new AudioContext();
+            if (audioContext.state === "suspended") {
+                await audioContext.resume();
+            }
+            console.log("[VoiceMode] AudioContext state:", audioContext.state);
             const source = audioContext.createMediaStreamSource(stream);
 
             const workletUrl =
@@ -121,10 +154,12 @@ export function useVoiceMode(): VoiceModeReturn {
             const workletNode = new AudioWorkletNode(audioContext, "stt-processor", {
                 processorOptions: {
                     sampleRate: audioContext.sampleRate,
-                    vadEnabled: true,
+                    // Manual stop only: do not auto-end recording on silence,
+                    // since this cuts off normal speech before the user finishes.
+                    vadEnabled: false,
                     silenceThreshold: 0.04,
-                    silenceDuration: 1.8,
-                    minSpeechDuration: 0.5,
+                    silenceDuration: 3.2,
+                    minSpeechDuration: 0.8,
                 },
             });
 
@@ -200,6 +235,13 @@ export function useVoiceMode(): VoiceModeReturn {
             window.electronAPI.stt.stop();
         }
     }, [setOrbStateSync]);
+
+    const getTTSVoice = useCallback((_language?: string) => {
+        if (!window.speechSynthesis) return null;
+
+        const voices = window.speechSynthesis.getVoices();
+        return voices.find((voice) => voice.lang.toLowerCase().startsWith("en")) || null;
+    }, []);
 
     /**
      * Play audio using Web Audio API (for Piper WAV) or fallback to OS Speech Synthesis.
@@ -315,8 +357,11 @@ export function useVoiceMode(): VoiceModeReturn {
 
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.95;
-            utterance.pitch = 1.0;
+
+            const preferredVoice = getTTSVoice(sessionLanguageRef.current);
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
 
             utterance.onend = () => {
                 setAudioLevel(0);
@@ -347,7 +392,7 @@ export function useVoiceMode(): VoiceModeReturn {
 
             window.speechSynthesis.speak(utterance);
         });
-    }, []);
+    }, [getTTSVoice, resolveSpeechLocale]);
 
     /**
      * Play the next sentence from the audio queue.
@@ -444,6 +489,11 @@ export function useVoiceMode(): VoiceModeReturn {
         isPlayingRef.current = false;
         voiceDoneRef.current = false;
 
+        if (listenAfterResponseRef.current) {
+            clearTimeout(listenAfterResponseRef.current);
+            listenAfterResponseRef.current = null;
+        }
+
         // Register sentence-ready listener
         cleanupSentenceReadyRef.current?.();
         cleanupSentenceReadyRef.current = ipc.onTTSSentenceReady((data) => {
@@ -470,6 +520,7 @@ export function useVoiceMode(): VoiceModeReturn {
             voiceDoneRef.current = true;
             // If playback already finished, go idle
             if (!isPlayingRef.current && audioQueueRef.current.length === 0) {
+                scheduleNextListen();
                 transitionToIdle();
             }
         });
@@ -521,9 +572,22 @@ export function useVoiceMode(): VoiceModeReturn {
         setIsActive(true);
         sessionIdRef.current = sessionId;
         studentIdRef.current = studentId;
+
+        try {
+            const persistedLanguage = await ipc.getSessionLanguage();
+            sessionLanguageRef.current = persistedLanguage || 'English';
+        } catch {
+            sessionLanguageRef.current = 'English';
+        }
+
         setOrbStateSync("idle");
         setTranscript("");
         setResponse("");
+
+        if (listenAfterResponseRef.current) {
+            clearTimeout(listenAfterResponseRef.current);
+            listenAfterResponseRef.current = null;
+        }
 
         // Listen for STT final results
         cleanupSTTRef.current = ipc.onSTTFinalResult((text) => {
@@ -539,17 +603,31 @@ export function useVoiceMode(): VoiceModeReturn {
             }
         });
 
-        // Play a greeting (not saved to chat)
-        await playTTSAudio("How can I help you today?");
+        // Use the app’s original default greeting tone.
+        await playTTSAudio('How can I help you today?');
         if (!isActiveRef.current) return;
 
-        // Go to idle — wait for user to tap
-        transitionToIdle();
-    }, [handleTranscript, transitionToIdle, setOrbStateSync, playTTSAudio]);
+        await startListening();
+    }, [handleTranscript, playTTSAudio, startListening]);
 
     /**
      * Stop voice mode completely.
      */
+    const scheduleNextListen = useCallback(() => {
+        if (!isActiveRef.current) return;
+
+        if (listenAfterResponseRef.current) {
+            clearTimeout(listenAfterResponseRef.current);
+        }
+
+        listenAfterResponseRef.current = window.setTimeout(() => {
+            if (!isActiveRef.current) return;
+            if (orbStateRef.current === "idle" || orbStateRef.current === "processing") {
+                void startListening();
+            }
+        }, 200);
+    }, [startListening]);
+
     const stopVoiceMode = useCallback(() => {
         console.log("[VoiceMode] Stopping voice mode");
         isActiveRef.current = false;
@@ -561,6 +639,11 @@ export function useVoiceMode(): VoiceModeReturn {
 
         // Stop TTS
         stopTTSPlayback();
+
+        if (listenAfterResponseRef.current) {
+            clearTimeout(listenAfterResponseRef.current);
+            listenAfterResponseRef.current = null;
+        }
 
         // Kill mic if active
         workletNodeRef.current?.disconnect();

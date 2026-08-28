@@ -51,13 +51,13 @@ class SttProcessor extends AudioWorkletProcessor {
     super();
     this.sampleRate = options.processorOptions?.sampleRate ?? 48000;
 
-    // VAD configuration
+    // VAD is intentionally off for tap-to-talk mode so the mic stays live until
+    // the user explicitly stops recording. Auto-stopping on silence cuts off
+    // normal speech and prevents reliable transcription.
     this.vadEnabled = options.processorOptions?.vadEnabled ?? false;
     this.silenceThreshold = options.processorOptions?.silenceThreshold ?? 0.04;
-    // Silence duration in seconds before triggering vad-silence
-    this.silenceDuration = options.processorOptions?.silenceDuration ?? 1.8;
-    // Minimum speech duration in seconds before we consider it real speech
-    this.minSpeechDuration = options.processorOptions?.minSpeechDuration ?? 0.5;
+    this.silenceDuration = options.processorOptions?.silenceDuration ?? 3.2;
+    this.minSpeechDuration = options.processorOptions?.minSpeechDuration ?? 0.8;
 
     // VAD state
     this.silentFrameCount = 0;

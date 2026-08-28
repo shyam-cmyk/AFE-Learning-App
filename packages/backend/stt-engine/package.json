@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@afe/shared": "workspace:*"
+    "@afe/shared": "workspace:*",
+    "sherpa-onnx-node": "^1.13.6"
   },
   "private": true
 }

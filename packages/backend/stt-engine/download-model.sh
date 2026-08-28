@@ -1,19 +1,33 @@
 #!/usr/bin/env bash
-# Download ggml-small-q5_1.bin from Hugging Face into this directory.
-# Use this if you get "invalid model data (bad magic)" (corrupt or wrong model).
+# Download official Sherpa ONNX ASR model bundles into this directory.
+# This app is intentionally Sherpa-only and uses the official release bundles.
 
-set -e
+set -euo pipefail
 STT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MODEL="ggml-base-q5_1.bin"
-URL="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${MODEL}"
+RELEASE_BASE="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models"
+MODEL="${MODEL_NAME:-sherpa-onnx-streaming-zipformer-en-20M-2023-02-17.tar.bz2}"
+TARGET_DIR="$(basename "$MODEL" .tar.bz2)"
 
-echo "Downloading ${MODEL} (~54 MiB) into ${STT_DIR}..."
-if command -v wget &>/dev/null; then
-  wget -O "${STT_DIR}/${MODEL}" "${URL}"
-elif command -v curl &>/dev/null; then
-  curl -L -o "${STT_DIR}/${MODEL}" "${URL}"
+if [ -d "${STT_DIR}/${TARGET_DIR}" ] || [ -d "${STT_DIR}/${TARGET_DIR%.*}" ]; then
+  echo "Model already present: ${TARGET_DIR}"
+  exit 0
+fi
+
+ARCHIVE_PATH="${STT_DIR}/${MODEL}"
+URL="${RELEASE_BASE}/${MODEL}"
+
+echo "Downloading: ${URL}"
+curl -fL --retry 3 --connect-timeout 20 --max-time 300 -o "$ARCHIVE_PATH" "$URL"
+
+echo "Extracting archive: ${ARCHIVE_PATH}"
+mkdir -p "$STT_DIR"
+if command -v tar >/dev/null 2>&1; then
+  tar -xjf "$ARCHIVE_PATH" -C "$STT_DIR"
 else
-  echo "Need wget or curl to download."
+  echo "tar is required to extract the model archive."
   exit 1
 fi
-echo "Done. Model saved to ${STT_DIR}/${MODEL}"
+
+rm -f "$ARCHIVE_PATH"
+
+echo "Sherpa model install complete: ${TARGET_DIR}"

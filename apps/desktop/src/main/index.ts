@@ -18,7 +18,6 @@ import { SyncService, checkAndGenerateSummaries, initializeAnalytics } from '@ba
 import { initializeAiTutor } from '@backend/ai-tutor';
 import { getDeviceInfo, checkLocationPermissionAndPrompt, updateLocationFromIP } from './device-info.js';
 import { SessionManager } from './session-manager.js';
-import { init as initSTT } from '@backend/stt-engine';
 import { init as initTTS } from '@backend/tts-engine';
 import { initializeLogger } from './logger.js';
 
@@ -269,10 +268,12 @@ async function initialize() {
     }
 
     // 4. Initialize STT and TTS engines
-    console.log('🎤 Initializing STT engine...');
-    const sttRoot = getSttRoot();
-    initSTT(sttRoot);
-    console.log('✓ STT engine initialized at:', sttRoot);
+    // console.log('🎤 Initializing STT engine...');
+    // const sttRoot = getSttRoot();
+    // initSTT(sttRoot);
+    // console.log('✓ STT engine initialized at:', sttRoot);
+
+    console.log('🎤 Initializing Sherpa STT engine...');
 
     console.log('🔊 Initializing TTS engine...');
     const ttsRoot = getTtsRoot();

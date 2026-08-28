@@ -202,9 +202,15 @@ function ModuleDetail() {
         <div className="neo-root" style={{ display: 'flex', flexDirection: 'column', padding: '44px 24px 0' }}>
             <div style={{ maxWidth: 940, margin: '0 auto', width: '100%', flex: 1 }}>
                 
-                <div style={{ marginBottom: 32 }}>
+                <div style={{ marginBottom: 32, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <button className="neo-btn neo-btn--teal" onClick={handleBackToModules}>
                         ← Back to Modules
+                    </button>
+                    <button
+                        className="neo-btn neo-btn--teal"
+                        onClick={() => navigate(`/ai-tutor/${studentId}`)}
+                    >
+                        🤖 Open AI Tutor
                     </button>
                 </div>
 

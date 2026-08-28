@@ -29,6 +29,11 @@ export function useStreamingSTT() {
       }
 
       const audioContext = new AudioContext();
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+      console.log("[STT] AudioContext state:", audioContext.state);
+
       const source = audioContext.createMediaStreamSource(stream);
 
       // Root-relative in dev (http); same-dir in prod (file://) so worklet is found

@@ -247,6 +247,19 @@ function StudentDashboard() {
                     </div>
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button
+                            className="neo-chip"
+                            onClick={() => navigate(`/ai-tutor/${studentId}`)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '7px 16px',
+                                fontWeight: 700,
+                            }}
+                        >
+                            🤖 AI Tutor
+                        </button>
                         {availableLanguages.length > 0 && (
                             <div style={{ position: 'relative' }}>
                                 <button 

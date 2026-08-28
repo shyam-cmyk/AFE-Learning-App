@@ -64,7 +64,7 @@ export function getDatabasePath(): string {
 }
 
 /**
- * Get the root directory for STT assets (whisper-cli, model)
+ * Get the root directory for STT assets (Sherpa model bundles)
  */
 export function getSttRoot(): string {
     if (app.isPackaged) {

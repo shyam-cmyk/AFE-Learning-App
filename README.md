@@ -38,12 +38,14 @@ This is a **multi-student, offline-capable learning application** designed for d
 ## 📦 Installation
 
 ### Prerequisites
-- **Node.js**: v20 LTS or higher
+- **Node.js**: v20 LTS only (`>=20 <21`)
 - **pnpm**: v9 or higher (recommended)
 - **Git**: Latest version
 - **Ollama**: (Optional) Required for AI features. [Download here](https://ollama.com).
 - **Windows**: Windows 10/11 (target platform)
 - **C++ Build Tools**: Visual Studio Build Tools (Desktop development with C++) - required for some native dependencies if prebuilds are missing.
+
+> Note: Node 24 is not currently supported for this project because the native SQLite dependency `better-sqlite3` fails to build on that runtime.
 
 ### Setup
 
