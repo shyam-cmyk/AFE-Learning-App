@@ -136,15 +136,6 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
-  apps/poc/sherpa-stt:
-    dependencies:
-      node-cpal:
-        specifier: ^0.1.1
-        version: 0.1.1
-      sherpa-onnx-node:
-        specifier: ^1.13.6
-        version: 1.13.6
-
   apps/renderer:
     dependencies:
       '@afe/shared':
@@ -3031,12 +3022,6 @@ packages:
 
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
-
-  node-cpal@0.1.1:
-    resolution: {integrity: sha512-ENjac9jLGqp6hb+zn2ioPEhKCN+ctDlP4omP52cNukFrerD2olXUQjfLFoRXeZRVuBrT44chDgcPEpnckQmUVw==}
-    engines: {node: '>=14.0.0'}
-    cpu: [x64, arm64]
-    os: [darwin, linux, win32]
 
   node-gyp@11.5.0:
     resolution: {integrity: sha512-ra7Kvlhxn5V9Slyus0ygMa2h+UqExPqUIkfk7Pc8QTLT956JLSy51uWFwHtIYy0vI8cB4BDhc/S03+880My/LQ==}
@@ -7100,8 +7085,6 @@ snapshots:
   node-api-version@0.2.1:
     dependencies:
       semver: 7.7.4
-
-  node-cpal@0.1.1: {}
 
   node-gyp@11.5.0:
     dependencies:

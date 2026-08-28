@@ -49,77 +49,251 @@ The package exports only the runtime required by the application and does not ke
 
 ---
 
-## Data flow
+## Data Flow
 
-1. Renderer starts the mic with `stt:start`.
+1. Renderer starts the microphone with `stt:start`.
 2. Audio chunks are sent as `stt:chunk` in PCM format.
-3. Main process converts Int16 PCM to Float32 and feeds Sherpa.
-4. Sherpa returns partial text while the stream is active.
-5. Endpoint detection / finalization sends `stt:final`.
+3. The main process converts Int16 PCM to Float32 and feeds Sherpa-ONNX.
+4. Sherpa-ONNX returns partial text while the stream is active.
+5. Endpoint detection and finalization send `stt:final`.
 6. The transcript is passed into the local AI pipeline.
 
 ---
 
 ## Requirements
 
-- Sample rate: 16000 Hz
-- Channels: 1
-- Format: signed 16-bit PCM
-- Endian: little-endian
-- Runtime engine: Sherpa-ONNX only
+* **Sample rate:** 16000 Hz
+* **Channels:** 1
+* **Format:** Signed 16-bit PCM
+* **Endian:** Little-endian
+* **Runtime engine:** Sherpa-ONNX only
 
 ---
 
-## Notes
+## Runtime Model
 
-- The legacy `whisper-cli`, `ggml-base` and `streaming.ts` Whisper flow are removed from the active runtime path.
-- The package is simplified to the canonical Sherpa implementation in `sherpa.ts`.
-- No Whisper-specific binary, script, or compatibility wrapper remains in the live STT pipeline.
+The STT engine uses Sherpa-ONNX streaming models.
+
+The runtime supports model selection through environment variables.
+
+Supported model selections include:
+
+* `english` — default English model
+* `indian-english` — Indian English model
+
+The runtime falls back to the default English model if the requested model is missing or incompatible.
+
+---
+
+## Development
+
+Run the application from the repository root:
 
 ```bash
 pnpm run dev
 ```
 
-The desktop app will load `whisper-cli`, the model, and (on Linux) the shared library from `packages/backend/stt-engine/`.
-
-### 7. Packaged build (installer)
-
-For the **standalone installer**, STT assets go in **`apps/desktop/stt-assets/`**, not in this folder. The desktop app bundles them at build time.
-
-- Put model and binaries in `stt-assets/win/` and `stt-assets/linux/` (see `apps/desktop/stt-assets/README.md` if present).
-- Then from repo root: `pnpm run build:installer`.
+During development, the desktop application loads the required Sherpa-ONNX STT model and runtime assets from the STT engine package.
 
 ---
 
-## Quick reference
+## Model Assets
 
-| Task | Command or location |
-|------|----------------------|
-| Run app (dev) | `pnpm run dev` (from repo root) |
-| STT assets (dev) | `packages/backend/stt-engine/` |
-| STT assets (installer) | `apps/desktop/stt-assets/win/` and `stt-assets/linux/` |
-| Download model | `bash packages/backend/stt-engine/download-model.sh` |
-| Copy whisper binary | `bash packages/backend/stt-engine/copy-whisper-from-idesktop.sh` |
-| Build installer | `pnpm run build:installer` |
+Development STT assets are stored in:
 
-## Downloading and selecting alternate models
-
-To download a different Sherpa streaming model (for example the Indian-English Zipformer), set the `MODEL_NAME` environment variable to the archive name and run the downloader. Example:
-
-```bash
-MODEL_NAME=sherpa-onnx-streaming-zipformer-indian-en.tar.bz2 bash packages/backend/stt-engine/download-model.sh
+```text
+packages/backend/stt-engine/
 ```
 
-Select the model at runtime by setting the `STT_MODEL` or `SHERPA_STT_MODEL` environment variable. Supported selections include `english` (default) and `indian-english`.
+For packaged builds, STT assets are stored separately under:
 
-Example (dev):
+```text
+apps/desktop/stt-assets/
+```
+
+The desktop application bundles the required STT assets into the installer during the production build.
+
+---
+
+## Packaged Build
+
+For the **standalone installer**, STT assets go in:
+
+```text
+apps/desktop/stt-assets/
+```
+
+They should not be placed in the development STT package for the packaged application.
+
+Expected platform-specific locations are:
+
+```text
+apps/desktop/stt-assets/win/
+apps/desktop/stt-assets/linux/
+```
+
+See `apps/desktop/stt-assets/README.md` if that file is present for the expected asset layout.
+
+Build the installer from the repository root:
 
 ```bash
-# Run desktop dev with the Indian-English model
-STT_MODEL=indian-english pnpm --filter desktop dev
+pnpm run build:installer
+```
 
-# Run desktop dev with the English model (fallback/default)
+---
+
+## Quick Reference
+
+| Task                           | Command or location                                  |
+| ------------------------------ | ---------------------------------------------------- |
+| Run app (dev)                  | `pnpm run dev` from repo root                        |
+| STT assets (dev)               | `packages/backend/stt-engine/`                       |
+| STT assets (Windows installer) | `apps/desktop/stt-assets/win/`                       |
+| STT assets (Linux installer)   | `apps/desktop/stt-assets/linux/`                     |
+| Download model                 | `bash packages/backend/stt-engine/download-model.sh` |
+| Build installer                | `pnpm run build:installer`                           |
+
+---
+
+## Downloading and Selecting Alternate Models
+
+To download a different Sherpa-ONNX streaming model, set the `MODEL_NAME` environment variable to the archive name and run the downloader.
+
+For example, to download the Indian-English Zipformer model:
+
+```bash
+MODEL_NAME=sherpa-onnx-streaming-zipformer-indian-en.tar.bz2 \
+bash packages/backend/stt-engine/download-model.sh
+```
+
+### Selecting a Model at Runtime
+
+Set either `STT_MODEL` or `SHERPA_STT_MODEL`.
+
+### Indian English
+
+```bash
+STT_MODEL=indian-english pnpm --filter desktop dev
+```
+
+### Default English
+
+```bash
 STT_MODEL=english pnpm --filter desktop dev
 ```
 
 The runtime will fall back to the default English model if the requested model is missing or incompatible.
+
+---
+
+## Supported Speech Languages
+
+The package exposes the following language-related API:
+
+```ts
+normalizeSpeechLanguage
+SUPPORTED_SPEECH_LANGUAGES
+type SupportedSpeechLanguage
+```
+
+The supported language configuration is defined by the Sherpa-ONNX implementation in `sherpa.ts`.
+
+---
+
+## Notes
+
+* Sherpa-ONNX is the only active STT runtime.
+* The legacy Whisper runtime is not part of the active STT pipeline.
+* Legacy `whisper-cli`, `ggml-base`, and Whisper streaming compatibility code should not be required by the application.
+* The canonical implementation is located in `sherpa.ts`.
+* STT processing is performed locally.
+* Audio is converted from Int16 PCM to Float32 before being passed to the recognizer.
+* The STT pipeline supports partial and final transcripts.
+* Model selection can be controlled through environment variables.
+
+---
+
+## Troubleshooting
+
+### Model Not Found
+
+If the requested model is unavailable, verify that the model assets exist in the expected STT asset directory.
+
+For development:
+
+```text
+packages/backend/stt-engine/
+```
+
+For packaged builds:
+
+```text
+apps/desktop/stt-assets/win/
+apps/desktop/stt-assets/linux/
+```
+
+### Requested Model Is Not Loading
+
+Verify the selected model name:
+
+```bash
+echo $STT_MODEL
+```
+
+Try the default English model:
+
+```bash
+STT_MODEL=english pnpm --filter desktop dev
+```
+
+If the requested model is missing or incompatible, the runtime should fall back to the default English model.
+
+### Installer STT Assets
+
+If STT works during development but not in the packaged application, verify that the required model and platform-specific runtime assets are present under:
+
+```text
+apps/desktop/stt-assets/
+```
+
+Then rebuild the installer:
+
+```bash
+pnpm run build:installer
+```
+
+---
+
+## Package Structure
+
+The STT engine package contains the Sherpa-ONNX implementation and supporting model/runtime assets.
+
+```text
+packages/backend/stt-engine/
+├── sherpa.ts
+├── download-model.sh
+├── README.md
+└── <model/runtime assets>
+```
+
+The exact asset structure may vary depending on the selected Sherpa-ONNX model.
+
+---
+
+## Runtime Flow
+
+```text
+Microphone
+    ↓
+PCM Audio
+    ↓
+Electron IPC
+    ↓
+Sherpa-ONNX
+    ↓
+Partial / Final Transcript
+    ↓
+Local AI Tutor
+```
+
+The STT engine is intentionally isolated from the renderer and communicates with the frontend through the application's IPC layer.
