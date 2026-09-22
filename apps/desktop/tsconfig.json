@@ -29,6 +29,9 @@
         },
         {
             "path": "../../packages/backend/stt-engine"
+        },
+        {
+            "path": "../../packages/backend/tts-engine"
         }
     ]
 }
