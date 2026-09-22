@@ -3,6 +3,7 @@ export {
     getSherpaSTT,
     SherpaStreamingSTT,
     normalizeSpeechLanguage,
+    resolveModelCandidates,
     SUPPORTED_SPEECH_LANGUAGES,
     type SupportedSpeechLanguage,
 } from "./sherpa.js";

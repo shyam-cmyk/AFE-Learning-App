@@ -29,6 +29,8 @@ export class SessionManager {
             this.endSession(null, null);
         }
 
+        const normalizedLanguage = language && language.trim() ? language : 'English';
+
         this.activeSession = {
             studentId,
             startTime: new Date(),
@@ -36,9 +38,9 @@ export class SessionManager {
             seekCount: 0,
             playbackSpeeds: [],
             watchTimeSeconds: 0,
-            language
+            language: normalizedLanguage
         };
-        console.log(`[SessionManager] Started session for student ${studentId} with language ${language}`);
+        console.log(`[SessionManager] Started session for student ${studentId} with language ${normalizedLanguage}`);
     }
 
     /**
@@ -88,7 +90,7 @@ export class SessionManager {
      * Get active session language
      */
     static getLanguage(): string {
-        return this.activeSession ? this.activeSession.language : 'English';
+        return this.activeSession ? (this.activeSession.language || 'English') : 'English';
     }
 
     /**

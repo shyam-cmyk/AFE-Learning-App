@@ -2,9 +2,24 @@
 
 This package runs **Sherpa-ONNX streaming ASR** for local, real-time speech recognition in the Electron app.
 
+## 🇬🇧 🇮🇳 Language Support
+
+The app is designed to work with English, Hindi, and Hinglish (Hindi-English code-switching) for Indian students.
+
+**Current models**:
+- ✓ English streaming model (default fallback)
+- ✓ Indian-English streaming model
+- ⚠️ Hindi/Hinglish model (setup required — see [HINDI_SETUP.md](./HINDI_SETUP.md))
+
+**Auto mode** (recommended):
+The app automatically selects the best model based on the language spoken by the student.
+
+**For Hindi/Hinglish support**, follow the setup guide: [HINDI_SETUP.md](./HINDI_SETUP.md)
+
 ---
 
 ## Architecture
+
 
 ```text
 Microphone

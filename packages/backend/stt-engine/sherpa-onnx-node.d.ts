@@ -16,10 +16,23 @@ declare module "sherpa-onnx-node" {
                 decoder?: string;
                 joiner?: string;
             };
-
+            paraformer?: {
+                encoder?: string;
+                decoder?: string;
+            };
+            zipformer2Ctc?: {
+                model?: string;
+            };
+            nemoCtc?: {
+                model?: string;
+            };
+            toneCtc?: {
+                model?: string;
+            };
             tokens?: string;
             numThreads?: number;
             provider?: string;
+            debug?: number | boolean;
         };
 
         decodingMethod?: string;
@@ -31,6 +44,36 @@ declare module "sherpa-onnx-node" {
 
     export interface OnlineRecognizerResult {
         text: string;
+    }
+
+    export interface OfflineRecognizerConfig {
+        featConfig?: {
+            sampleRate?: number;
+            featureDim?: number;
+        };
+        modelConfig?: {
+            nemoCtc?: {
+                model?: string;
+            };
+            tokens?: string;
+            numThreads?: number;
+            provider?: string;
+        };
+    }
+
+    export interface OfflineRecognizerResult {
+        text: string;
+    }
+
+    export class OfflineStream {
+        acceptWaveform(obj: Waveform): void;
+    }
+
+    export class OfflineRecognizer {
+        constructor(config: OfflineRecognizerConfig);
+        createStream(): OfflineStream;
+        decode(stream: OfflineStream): void;
+        getResult(stream: OfflineStream): OfflineRecognizerResult;
     }
 
     export class OnlineStream {

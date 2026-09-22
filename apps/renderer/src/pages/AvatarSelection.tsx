@@ -19,13 +19,7 @@ const PROTOTYPE_AVATARS: Record<string, { emoji: string, bg: string }> = {
 
 const GRADES = [6, 7, 8, 9, 10, 11, 12];
 const LANGUAGES = [
-  { code: 'en', label: 'English',  native: 'English' },
-  { code: 'hi', label: 'Hindi',    native: 'हिन्दी' },
-  { code: 'ta', label: 'Tamil',    native: 'தமிழ்' },
-  { code: 'te', label: 'Telugu',   native: 'తెలుగు' },
-  { code: 'mr', label: 'Marathi',  native: 'मराठी' },
-  { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી' },
-  { code: 'kn', label: 'Kannada',  native: 'ಕನ್ನಡ' },
+  { code: 'en', label: 'English', native: 'English' },
 ];
 function langNative(code: string) { return (LANGUAGES.find(l => l.code === code) || LANGUAGES[0]).native; }
 

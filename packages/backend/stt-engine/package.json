@@ -9,7 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "download-hindi": "bash download-hindi-model.sh"
   },
   "dependencies": {
     "@afe/shared": "workspace:*",

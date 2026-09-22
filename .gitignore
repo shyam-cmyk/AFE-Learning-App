@@ -46,4 +46,8 @@ installer-assets/assets/videos2/*
 scratch
 scratch/*
 certs/*
+# Downloaded Sherpa STT model binaries are installed locally by setup scripts.
+# They exceed GitHub's normal file-size limit and must not be committed.
+packages/backend/stt-engine/sherpa-onnx-indic-conformer/
+packages/backend/stt-engine/sherpa-onnx-streaming-zipformer-hi-en/
 certs

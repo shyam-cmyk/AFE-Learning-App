@@ -21,6 +21,15 @@ const OLLAMA_MODEL_CANDIDATES = [
     'gemma3:4b',
 ];
 
+function sessionLogId(sessionId?: string): string {
+    if (!sessionId) return 'unknown';
+    return sessionId.slice(0, 8).toLowerCase();
+}
+
+function logLlmMetric(sessionId: string | undefined, label: string, value: number): void {
+    console.log(`[AI-TUTOR][session=${sessionLogId(sessionId)}] [LLM] ${label}: ${value} ms`);
+}
+
 /**
  * Initialize the AI Tutor service with the correct database path and optional content root.
  */
@@ -170,6 +179,10 @@ export async function sendMessage(
         let aiResponse = '';
         let cancelled = false;
         const model = await resolveOllamaModel();
+        const llmStart = performance.now();
+        console.log(`[AI-TUTOR][session=${sessionLogId(sessionId)}] [LLM] Started`);
+
+        let firstTokenAt: number | null = null;
 
         if (onChunk) {
             const stream = await client.chat({
@@ -185,6 +198,10 @@ export async function sendMessage(
                     break;
                 }
                 const chunk = part.message.content;
+                if (chunk && firstTokenAt === null) {
+                    firstTokenAt = performance.now();
+                    logLlmMetric(sessionId, 'TTFT', Math.round(firstTokenAt - llmStart));
+                }
                 aiResponse += chunk;
                 onChunk(chunk);
             }
@@ -367,6 +384,8 @@ export async function sendVoiceMessage(
         let aiResponse = '';
         let sentenceBuffer = '';
         const model = await resolveOllamaModel();
+        const llmStart = performance.now();
+        console.log(`[AI-TUTOR][session=${sessionLogId(sessionId)}] [LLM] Started`);
 
         const stream = await client.chat({
             model,
@@ -375,8 +394,14 @@ export async function sendVoiceMessage(
             keep_alive: isLowEndDevice() ? '1m' : '5m',
         });
 
+        let firstTokenAt: number | null = null;
+
         for await (const part of stream) {
             const chunk = part.message.content;
+            if (chunk && firstTokenAt === null) {
+                firstTokenAt = performance.now();
+                logLlmMetric(sessionId, 'TTFT', Math.round(firstTokenAt - llmStart));
+            }
             aiResponse += chunk;
             sentenceBuffer += chunk;
 
@@ -394,6 +419,8 @@ export async function sendVoiceMessage(
         if (sentenceBuffer.trim().length > 0) {
             onSentence(sentenceBuffer.trim());
         }
+
+        logLlmMetric(sessionId, 'Total response latency', Math.round(performance.now() - llmStart));
 
         const now = new Date().toISOString();
 

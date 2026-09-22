@@ -100,7 +100,7 @@ const LANG_CODE_TO_NAME: Record<string, string> = {
 function inferIndianLanguageFromTranscript(text: string): string {
     const trimmed = (text || '').trim();
     if (!trimmed) {
-        return SessionManager.getLanguage() || 'Hindi / Hinglish';
+        return SessionManager.getLanguage() || 'English';
     }
 
     const hasDevanagari = /[\u0900-\u097F]/.test(trimmed);
@@ -119,6 +119,126 @@ function inferIndianLanguageFromTranscript(text: string): string {
     }
 
     return 'Hindi / Hinglish';
+}
+
+function makeInteractionSessionId(seed?: string): string {
+    const raw = (seed || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`)
+        .replace(/[^a-z0-9]/gi, '')
+        .toLowerCase();
+
+    return raw.slice(0, 8) || 'session';
+}
+
+const BENCHMARK_SAMPLE_COUNT = 10;
+const interactionBenchmarkSamples: Array<{
+    interactionId: string;
+    sttTtft: number | null;
+    llmTtft: number | null;
+    ttsFirstAudio: number | null;
+    totalE2E: number | null;
+}> = [];
+
+const activeInteractionLatency = {
+    interactionId: '',
+    sttStartedAt: null as number | null,
+    sttFirstPartialAt: null as number | null,
+    sttFinalAt: null as number | null,
+    llmStartedAt: null as number | null,
+    llmFirstTokenAt: null as number | null,
+    llmCompletedAt: null as number | null,
+    ttsStartedAt: null as number | null,
+    ttsFirstAudioAt: null as number | null,
+};
+
+function resetActiveInteractionLatency(interactionId?: string, preserveExistingStt = false): string {
+    const id = interactionId ? makeInteractionSessionId(interactionId) : makeInteractionSessionId();
+
+    activeInteractionLatency.interactionId = id;
+
+    if (!preserveExistingStt) {
+        activeInteractionLatency.sttStartedAt = null;
+        activeInteractionLatency.sttFirstPartialAt = null;
+        activeInteractionLatency.sttFinalAt = null;
+    }
+
+    activeInteractionLatency.llmStartedAt = null;
+    activeInteractionLatency.llmFirstTokenAt = null;
+    activeInteractionLatency.llmCompletedAt = null;
+    activeInteractionLatency.ttsStartedAt = null;
+    activeInteractionLatency.ttsFirstAudioAt = null;
+
+    return id;
+}
+
+function logInteraction(scope: string, message: string): void {
+    console.log(`[AI-TUTOR][session=${activeInteractionLatency.interactionId || 'unknown'}] ${scope} ${message}`);
+}
+
+function percentile(values: number[], p: number): number {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1));
+    return sorted[index];
+}
+
+function recordBenchmarkSample(): void {
+    const interactionId = activeInteractionLatency.interactionId;
+    const sttTtft = activeInteractionLatency.sttStartedAt !== null && activeInteractionLatency.sttFirstPartialAt !== null
+        ? Math.round(activeInteractionLatency.sttFirstPartialAt - activeInteractionLatency.sttStartedAt)
+        : null;
+    const llmTtft = activeInteractionLatency.llmStartedAt !== null && activeInteractionLatency.llmFirstTokenAt !== null
+        ? Math.round(activeInteractionLatency.llmFirstTokenAt - activeInteractionLatency.llmStartedAt)
+        : null;
+    const ttsFirstAudio = activeInteractionLatency.ttsStartedAt !== null && activeInteractionLatency.ttsFirstAudioAt !== null
+        ? Math.round(activeInteractionLatency.ttsFirstAudioAt - activeInteractionLatency.ttsStartedAt)
+        : null;
+    const totalE2E = activeInteractionLatency.sttStartedAt !== null && activeInteractionLatency.ttsFirstAudioAt !== null
+        ? Math.round(activeInteractionLatency.ttsFirstAudioAt - activeInteractionLatency.sttStartedAt)
+        : null;
+
+    if (!interactionId) {
+        return;
+    }
+
+    interactionBenchmarkSamples.push({
+        interactionId,
+        sttTtft,
+        llmTtft,
+        ttsFirstAudio,
+        totalE2E,
+    });
+
+    if (interactionBenchmarkSamples.length > BENCHMARK_SAMPLE_COUNT) {
+        interactionBenchmarkSamples.shift();
+    }
+
+    if (interactionBenchmarkSamples.length < BENCHMARK_SAMPLE_COUNT) {
+        return;
+    }
+
+    const summarize = (values: Array<number | null>) => {
+        const filtered = values.filter((value): value is number => value !== null && Number.isFinite(value));
+        if (filtered.length === 0) {
+            return { min: 0, avg: 0, p50: 0, p95: 0, max: 0 };
+        }
+        return {
+            min: Math.min(...filtered),
+            avg: Math.round(filtered.reduce((sum, value) => sum + value, 0) / filtered.length),
+            p50: percentile(filtered, 0.5),
+            p95: percentile(filtered, 0.95),
+            max: Math.max(...filtered),
+        };
+    };
+
+    const sttSummary = summarize(interactionBenchmarkSamples.map((sample) => sample.sttTtft));
+    const llmSummary = summarize(interactionBenchmarkSamples.map((sample) => sample.llmTtft));
+    const ttsSummary = summarize(interactionBenchmarkSamples.map((sample) => sample.ttsFirstAudio));
+    const totalSummary = summarize(interactionBenchmarkSamples.map((sample) => sample.totalE2E));
+
+    console.log('[AI-TUTOR][benchmark] STT TTFT: min=%dms avg=%dms p50=%dms p95=%dms max=%dms', sttSummary.min, sttSummary.avg, sttSummary.p50, sttSummary.p95, sttSummary.max);
+    console.log('[AI-TUTOR][benchmark] LLM TTFT: min=%dms avg=%dms p50=%dms p95=%dms max=%dms', llmSummary.min, llmSummary.avg, llmSummary.p50, llmSummary.p95, llmSummary.max);
+    console.log('[AI-TUTOR][benchmark] TTS first-audio latency: min=%dms avg=%dms p50=%dms p95=%dms max=%dms', ttsSummary.min, ttsSummary.avg, ttsSummary.p50, ttsSummary.p95, ttsSummary.max);
+    console.log('[AI-TUTOR][benchmark] Total end-to-end latency (audio start -> first AI audio): min=%dms avg=%dms p50=%dms p95=%dms max=%dms', totalSummary.min, totalSummary.avg, totalSummary.p50, totalSummary.p95, totalSummary.max);
 }
 
 // ============================================================
@@ -300,9 +420,13 @@ export function registerIPCHandlers(): void {
                 return;
             }
 
+            const interactionId = resetActiveInteractionLatency(undefined, false);
+            activeInteractionLatency.sttStartedAt = performance.now();
+
             console.log(
                 '[STT] Starting Sherpa streaming recognition'
             );
+            logInteraction('[STT]', 'Started');
 
             try {
                 const preferredLanguage: SupportedSpeechLanguage =
@@ -396,6 +520,12 @@ export function registerIPCHandlers(): void {
                 if (text && text.trim()) {
                     const partial = text.trim();
 
+                    if (activeInteractionLatency.sttStartedAt !== null && activeInteractionLatency.sttFirstPartialAt === null) {
+                        activeInteractionLatency.sttFirstPartialAt = performance.now();
+                        const ttft = Math.round(activeInteractionLatency.sttFirstPartialAt - activeInteractionLatency.sttStartedAt);
+                        logInteraction('[STT]', `TTFT: ${ttft} ms`);
+                    }
+
                     console.log(
                         '[STT] Partial:',
                         partial
@@ -450,6 +580,12 @@ export function registerIPCHandlers(): void {
                         const result =
                             finalText.trim();
 
+                        activeInteractionLatency.sttFinalAt = performance.now();
+                        const finalLatency = activeInteractionLatency.sttStartedAt !== null
+                            ? Math.round(activeInteractionLatency.sttFinalAt - activeInteractionLatency.sttStartedAt)
+                            : 0;
+
+                        logInteraction('[STT]', `Final transcript latency: ${finalLatency} ms`);
                         console.log(
                             '[STT] Final:',
                             result
@@ -1306,6 +1442,10 @@ export function registerIPCHandlers(): void {
                 }
             );
 
+            const interactionId = resetActiveInteractionLatency(sessionId, true);
+            activeInteractionLatency.llmStartedAt = performance.now();
+            logInteraction('[LLM]', 'Started');
+
             let sentenceIndex = 0;
 
             const ttsPromiseChain: Promise<void>[] = [];
@@ -1347,14 +1487,23 @@ export function registerIPCHandlers(): void {
                             waitForPrevious.then(
                                 async () => {
                                     try {
+                                        const ttsStartedAt = performance.now();
+                                        activeInteractionLatency.ttsStartedAt = ttsStartedAt;
+                                        logInteraction('[TTS]', 'Started');
+
                                         const audioBuffer =
                                             await ttsSpeak(
-                                                sentence
+                                                sentence,
+                                                interactionId
                                             );
 
                                         if (
                                             audioBuffer
                                         ) {
+                                            activeInteractionLatency.ttsFirstAudioAt = performance.now();
+                                            const elapsed = Math.round(activeInteractionLatency.ttsFirstAudioAt - ttsStartedAt);
+                                            logInteraction('[TTS]', `First audio: ${elapsed} ms`);
+
                                             const base64 =
                                                 audioBuffer.toString(
                                                     'base64'
@@ -1390,6 +1539,12 @@ export function registerIPCHandlers(): void {
 
                     // AI stream callback
                     (chunk) => {
+                        if (chunk && chunk.trim() && activeInteractionLatency.llmStartedAt !== null && activeInteractionLatency.llmFirstTokenAt === null) {
+                            activeInteractionLatency.llmFirstTokenAt = performance.now();
+                            const ttft = Math.round(activeInteractionLatency.llmFirstTokenAt - activeInteractionLatency.llmStartedAt);
+                            logInteraction('[LLM]', `TTFT: ${ttft} ms`);
+                        }
+
                         event.sender.send(
                             IPC_CHANNELS.AI_STREAM_CHUNK,
                             {
@@ -1415,6 +1570,19 @@ export function registerIPCHandlers(): void {
             await Promise.all(
                 ttsPromiseChain
             );
+
+            activeInteractionLatency.llmCompletedAt = performance.now();
+            const llmTotal = activeInteractionLatency.llmStartedAt !== null
+                ? Math.round(activeInteractionLatency.llmCompletedAt - activeInteractionLatency.llmStartedAt)
+                : 0;
+            logInteraction('[LLM]', `Total response latency: ${llmTotal} ms`);
+
+            if (activeInteractionLatency.ttsFirstAudioAt !== null && activeInteractionLatency.sttStartedAt !== null) {
+                const totalE2E = Math.round(activeInteractionLatency.ttsFirstAudioAt - activeInteractionLatency.sttStartedAt);
+                logInteraction('[E2E]', `audio start -> first AI audio: ${totalE2E} ms`);
+            }
+
+            recordBenchmarkSample();
 
             event.sender.send(
                 IPC_CHANNELS.AI_VOICE_DONE,
@@ -1445,7 +1613,7 @@ export function registerIPCHandlers(): void {
 
             try {
                 const audioBuffer =
-                    await ttsSpeak(text);
+                    await ttsSpeak(text, data?.sessionId || undefined);
 
                 if (audioBuffer) {
                     const base64 =

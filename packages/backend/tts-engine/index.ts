@@ -66,11 +66,15 @@ export function isAvailable(): boolean {
  * Synthesize speech from text using Piper TTS.
  * Returns a WAV buffer, or null if Piper is unavailable.
  */
-export async function speak(text: string): Promise<Buffer | null> {
+export async function speak(text: string, sessionId?: string): Promise<Buffer | null> {
     if (!text || text.trim().length === 0) {
         console.warn("[TTS] Empty text, skipping.");
         return null;
     }
+
+    const startedAt = performance.now();
+    const sessionKey = sessionId ? sessionId.slice(0, 8).toLowerCase() : 'unknown';
+    console.log(`[AI-TUTOR][session=${sessionKey}] [TTS] Started`);
 
     if (!isAvailable()) {
         console.warn("[TTS] Piper not available, falling back to OS TTS.");
@@ -144,6 +148,8 @@ export async function speak(text: string): Promise<Buffer | null> {
                 try {
                     const wavBuffer = await fs.promises.readFile(tempFile);
                     await fs.promises.unlink(tempFile);
+                    const firstAudioLatency = Math.round(performance.now() - startedAt);
+                    console.log(`[AI-TUTOR][session=${sessionKey}] [TTS] Time to first audio: ${firstAudioLatency} ms`);
                     console.log(`[TTS] Generated WAV: ${wavBuffer.length} bytes`);
                     resolve(wavBuffer);
                 } catch (readErr) {

@@ -1,0 +1,99 @@
+4952b4a | 2026-08-28 13:43:11 +0530 | Shyam | fix STT engine and project configuration
+3a2608b | 2026-08-28 13:21:43 +0530 | Shyam | Fix CI workflow YAML syntax
+a8a6e57 | 2026-08-28 12:36:31 +0530 | Shyam | Remove legacy Whisper STT assets
+fd631f1 | 2026-08-28 11:09:44 +0530 | Shyam | chore(ci): add cross-platform smoke workflow and validate native modules
+4c6208c | 2026-08-28 11:08:15 +0530 | Shyam | ci: add cross-platform smoke workflow to validate native modules
+5d46abd | 2026-08-26 19:14:50 +0530 | unknown | Added auth
+9f11b2b | 2026-08-26 17:11:02 +0530 | unknown | Fixed some minor bigs, added the dropdown
+014da5c | 2026-08-24 21:31:29 +0530 | unknown | Fixed the quizes, 12th RCT video, multiple quizes, Installation issues
+d60341c | 2026-08-24 19:35:34 +0530 | unknown | Added fallback waterfall for serail ID fetchign and devices registration and backfilling.
+26fbc4b | 2026-08-24 18:49:30 +0530 | unknown | Added the popup for restart
+443cd16 | 2026-08-24 13:27:21 +0530 | unknown | Removed the ad hoc audio switcher
+17b3eb8 | 2026-08-24 13:20:34 +0530 | unknown | Added grade 5, auto updater, and video lang swtich ad hoc
+56b9f11 | 2026-08-22 17:25:43 +0530 | unknown | Made the CSS align with rest of the app
+cdd0208 | 2026-08-22 17:21:42 +0530 | unknown | added modal for school details.
+95740be | 2026-08-22 16:18:48 +0530 | unknown | Modified AI context injection
+12306c6 | 2026-08-21 13:07:18 +0530 | unknown | Added AI in the app
+1480726 | 2026-08-07 16:56:19 +0530 | unknown | Fixed the manifest and quizes
+9064367 | 2026-08-06 16:57:40 +0530 | unknown | Fixed public installer nad added icon
+e0aa732 | 2026-08-06 14:31:48 +0530 | unknown | Modified the manifest
+5954c3a | 2026-08-06 14:08:26 +0530 | unknown | Fixed issues with video player, pip and others
+7766952 | 2026-08-03 17:01:01 +0530 | unknown | Fixed the session polling to the server
+0791cd5 | 2026-07-30 12:19:34 +0530 | unknown | Release notes for base version and new mosule integration
+9b42e72 | 2026-07-30 09:42:03 +0530 | unknown | Updated version
+37ce499 | 2026-07-25 20:52:08 +0530 | unknown | feat(session): persist student language preference and extend feedback survey Add 5-question feedback modal in 7 languages, fix session IPC whitelist, and save language preference to DB.
+701e0ae | 2026-07-14 11:48:32 +0530 | unknown | Fixed autoupdater errors and one single file for deployment of RMS
+4a26edc | 2026-07-08 12:57:53 +0530 | unknown | Added auto updater.
+6df24f1 | 2026-07-08 11:44:04 +0530 | unknown | V 1.0.6. Updated the whole app's UI and UX
+17d1715 | 2026-06-23 11:47:44 +0530 | unknown | Added metrics collection in afe.
+62691c7 | 2026-06-23 11:40:18 +0530 | unknown | Added geoloaction fetching and updating the sessions in server whenever the data is present.
+4f22755 | 2026-06-22 11:55:56 +0530 | unknown | New version and modified release notes
+a4d9e06 | 2026-06-22 11:40:46 +0530 | unknown | Added feedback and adding prompt to use locations
+b055b43 | 2026-06-20 21:21:15 +0530 | unknown | Added all the keys in for tracking for AFE
+921b740 | 2026-06-16 15:45:36 +0530 | unknown | Added videos in the build
+cc344bd | 2026-06-15 20:22:04 +0530 | unknown | Fixed langugage swtiching
+13a3a45 | 2026-06-01 17:59:13 +0530 | unknown | Mod gitignore
+a67c855 | 2026-06-01 17:37:14 +0530 | unknown | Removed the learn with ai button
+10c1699 | 2026-05-31 21:04:44 +0530 | unknown | removed the learn with ai content
+45c7f3e | 2026-05-31 21:01:12 +0530 | unknown | Added modules for amazong
+345fbd4 | 2026-05-31 20:22:51 +0530 | unknown | Changed the manifest
+4875e90 | 2026-05-26 14:53:37 +0530 | unknown | Merge branch 'main' of https://github.com/navgurukul/AFE-Learning-App into sama-module
+53fda10 | 2026-05-25 15:16:53 +0530 | unknown | Added Restriction in Videos and completeion
+ddc6d91 | 2026-05-25 14:21:42 +0530 | unknown | Added feature to generate username
+62f6515 | 2026-05-13 13:26:43 +0530 | unknown | Added required manifest in the file to support the sama module.
+93c65a4 | 2026-04-02 13:11:51 +0530 | unknown | Updated the md files and fixed PDF rendering issue
+986e421 | 2026-03-25 12:29:43 +0530 | unknown | Ollama performace and project project resource audit
+76fb15b | 2026-03-25 11:43:32 +0530 | unknown | Fixed AI summary and AI Tutor issues with manifest and DB connection
+a55f793 | 2026-03-25 09:42:29 +0530 | unknown | Fixed packaging, non rendering, stt and tts workflow.
+07b3780 | 2026-03-25 09:41:42 +0530 | unknown | Fixed packaging, non rendering, stt and tts workflow.
+23d484b | 2026-03-24 18:10:38 +0530 | unknown | Fixed the issues with build errors
+0ef3753 | 2026-03-24 18:04:02 +0530 | unknown | Added low end configs for the AFE APp
+fe8becd | 2026-03-24 17:32:29 +0530 | unknown | Fixed the data transfer in prod
+8dd8751 | 2026-03-24 17:09:02 +0530 | unknown | Fixed routing with hashrouting and fixed logger and fixed content managemnet
+96ba78a | 2026-03-24 16:49:27 +0530 | unknown | Added logger
+9b7480a | 2026-03-24 16:03:56 +0530 | unknown | Fixed issues with the DB
+b6ed295 | 2026-03-23 18:22:58 +0530 | unknown | Running code. WITH packaging intact
+decab22 | 2026-03-23 12:11:58 +0530 | unknown | Added important deps in AFE
+1d4efba | 2026-03-23 11:22:01 +0530 | unknown | Added publish command in package of main file
+015d565 | 2026-03-23 11:19:45 +0530 | unknown | Added compilation of stt and tts in app
+b12a148 | 2026-03-23 10:40:02 +0530 | unknown | Added ggml-base-q5_1.bin in the stt in order to support multilingual supprt in STT
+81e26d7 | 2026-03-23 10:01:01 +0530 | unknown | Merge branch 'packaging' of https://github.com/navgurukul/AFE-Learning-App into merge/package-and-uiFixes
+150a4f2 | 2026-03-18 11:42:35 +0530 | Anshul Buxy | Fixed the TTs stopping issue and added a button to stop the response
+2ec7590 | 2026-03-17 23:04:38 +0530 | unknown | Modified the files for creating afe package.
+ca9e237 | 2026-03-17 16:18:55 +0530 | Anshul Buxy | Fix onboarding navigation and setup
+e1879d9 | 2026-03-06 13:14:32 +0530 | unknown | Pulled feature/tts-vad-replacement-tap-to-talk branch and dev guide
+e3e458c | 2026-03-06 12:46:52 +0530 | unknown | added MD file.
+0592082 | 2026-03-01 19:49:48 +0530 | unknown | Added multilingual model.
+d18430a | 2026-02-28 15:35:32 +0530 | unknown | perf: optimize CPU usage and responsiveness across AI pipeline - Implemented persistent Piper TTS daemon (loads model once) - Optimized Ollama: deferred title gen, used 0.5b model, reduced history context - Tuned VAD sensitivity and reduced Whisper threads for better CPU headroom - Switched to multilingual Whisper base model with auto-detection
+f5b239e | 2026-02-28 13:42:01 +0530 | unknown | Modified front page
+5a03186 | 2026-02-27 20:11:02 +0530 | unknown | Modified prompt
+5accba1 | 2026-02-27 20:06:24 +0530 | unknown | Modified prompt
+77e3992 | 2026-02-27 19:58:53 +0530 | unknown | Modified prompt
+202a4d7 | 2026-02-26 17:25:10 +0530 | unknown | Added UI UX changes
+8882a00 | 2026-02-25 12:11:08 +0530 | unknown | Refined prompt
+cf6dbea | 2026-02-23 09:36:05 +0530 | unknown | Added some big fixes
+235e773 | 2026-02-22 20:51:54 +0530 | unknown | Modified name of the app
+4f7e5f1 | 2026-02-22 20:28:56 +0530 | unknown | Added new tts model with Indian Accent
+81c9461 | 2026-02-19 22:45:49 +0530 | unknown | Added tap to talk feature to make the tutor more sensible to run
+e6ca71d | 2026-02-19 22:14:44 +0530 | unknown | Added VAD for ai tutor and stt and tts
+66f42c8 | 2026-02-19 21:03:53 +0530 | unknown | Changed the model for better STT
+6926320 | 2026-02-19 11:41:43 +0530 | unknown | Merged features/stt
+65861f9 | 2026-02-19 11:17:35 +0530 | unknown | Fixed some issues related to paltform specifity
+389c8ac | 2026-02-18 13:11:00 +0530 | Suyog Pipliwal | final push
+d6a93ca | 2026-02-17 19:49:26 +0530 | suyog2244 | some more changes
+e6537e6 | 2026-02-17 14:59:23 +0530 | suyog2244 | more changes
+d059479 | 2026-02-17 12:46:09 +0530 | suyog2244 | stt baseline ready
+40e128d | 2026-02-13 11:00:54 +0530 | unknown | Added first sync edge case
+b563e14 | 2026-02-11 14:08:14 +0530 | unknown | Added daily snapshot and syncing for students data
+b617441 | 2026-02-11 12:54:04 +0530 | unknown | Updated architecture and config for electron builder
+d35aa53 | 2026-02-06 15:00:34 +0530 | unknown | Modified Architecture file
+7323c53 | 2026-02-03 00:12:02 +0530 | unknown | Added platform capabilities
+a111696 | 2026-02-03 00:10:49 +0530 | unknown | Added platform capabilities
+841db69 | 2026-01-30 13:14:45 +0530 | unknown | Added learning summary and progress using local AI
+b21aded | 2026-01-28 18:16:35 +0530 | unknown | Fixed tracking in video and reading of modules and module completions
+9eabe8c | 2026-01-23 11:29:13 +0530 | unknown | Added migrations. Fixed tracking modules started
+b31d8e0 | 2026-01-21 12:36:00 +0530 | unknown | Fixed Video Player viewport.
+6c39bc8 | 2026-01-17 17:52:21 +0530 | unknown | Renamed button to Begin the Journey!
+ba01eea | 2026-01-17 16:49:55 +0530 | unknown | Modified README.md
+086fc04 | 2026-01-17 16:48:47 +0530 | unknown | Modified README.ms
+f2c69f5 | 2026-01-17 16:46:52 +0530 | unknown | Initial commit
